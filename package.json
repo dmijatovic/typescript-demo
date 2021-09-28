@@ -1,0 +1,17 @@
+{
+  "name": "udemy",
+  "version": "1.0.0",
+  "description": "This repo keeps typescript wisdom :-)",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "start": "node dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.4.3"
+  }
+}
