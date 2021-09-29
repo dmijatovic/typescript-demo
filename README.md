@@ -267,3 +267,201 @@ console.log(persons["jane"]?.dateOfBirth.toISOString());
 // properties
 persons["non-existing"]?.dateOfBirth;
 ```
+
+## Convert JSON payload / object to type
+
+As typescript does type inferance on the object we can paste JSON payload into an object and make type of of that object.
+
+```typescript
+// JSON payload
+const personPayload = {
+  name: "Jonh Doe",
+  email: "j.d.@dot.com",
+  dateOfBirth: "1970-11-01",
+  heightInCm: 175,
+  wightInKg: 70,
+};
+// convert it to type
+type PersonPayload = typeof personPayload;
+
+// use it
+function showPersonName(person: PersonPayload) {
+  console.log("Your name is: ", person.name);
+}
+```
+
+## Lookup types
+
+Long type objects can be broken into a smaller sections using lookup types. This means that we can reffer to a part of the larger type.
+
+```typescript
+const longObjectWitLotProps = {
+  propTree1: {
+    strProp1: "string",
+    blProp1: true,
+    nProp1: 1,
+    dProp1: new Date(),
+    propChildTree1: {
+      strProp1: "B",
+      blProp1: false,
+    },
+  },
+  propTree2: {
+    strProp1: "string",
+    strProp2: "string",
+    strProp3: "string",
+    nProp1: 1,
+    dProp1: new Date(),
+  },
+};
+
+// copy object to be a type
+type LongObjectWitLotProps = typeof longObjectWitLotProps;
+// reffer to part of the larger type
+type PropTree2 = LongObjectWitLotProps["propTree2"];
+
+function getPropTree2(data: LongObjectWitLotProps): PropTree2 {
+  return data["propTree2"];
+}
+
+function newPropTree2(partial: PropTree2, data: unknown): void {
+  if (typeof data == "object" && data != null) {
+    data = {
+      ...data,
+      partial,
+    };
+  }
+}
+
+// get tree 2
+const tree2 = getPropTree2(longObjectWitLotProps);
+// change something
+tree2.strProp1 = "Changed";
+// updated
+newPropTree2(tree2, longObjectWitLotProps);
+```
+
+## Keyof type operator
+
+You can use keyof to extract exact type from the object
+
+```typescript
+const person = {
+  name: "John Doe",
+  age: 25,
+  location: "Amsterdam",
+  dateOfBirth: new Date("1970-11-11"),
+};
+
+// make type from person object
+type PersonObject = typeof person;
+// make type from person keys
+type PersonKeys = keyof PersonObject;
+
+function getPersonProp(item: Person, key: PersonKeys) {
+  return item[key];
+}
+
+const age = getPersonProp(person, "age");
+```
+
+## Conditional types
+
+The conditional types returns a type based on conditional. The approach is similair to iternary operator in Javascript.
+
+```typescript
+type TypeName<T> = T extends string
+  ? "string"
+  : T extends number
+  ? "number"
+  : T extends boolean
+  ? "boolean"
+  : unknown;
+
+function typeName<T>(x: T): TypeName<T> {
+  return typeof x as TypeName<T>;
+}
+
+const str = typeName("hello");
+```
+
+## Infer return type
+
+It enables you to infer type from value returned from another function.
+
+```typescript
+function createPerson(first: string, last: string) {
+  return {
+    firstName: first,
+    lastName: last,
+    fullName: `${first} ${last}`,
+  };
+}
+
+// infer param type from function return type
+function logPerson(person: ReturnType<typeof createPerson>) {
+  console.log("Person full name: ", person.fullName);
+}
+```
+
+## Mapped types
+
+You can map types programatically and change these to optional or readyonly.
+
+```typescript
+type PointType = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+type ReadOnlyPoint = {
+  readonly // readonly prop before loop
+  // loop using in keyof
+  [Item in keyof PointType]: number;
+};
+
+const center: ReadOnlyPoint = {
+  x: 0,
+  y: 1,
+  z: 3,
+};
+
+// is read only -> cannot be assigned
+center.x = 1;
+
+// This example maps all props as optional
+// note ? added in the loop
+type MapAsOptional<T> = {
+  [Item in keyof T]?: T[Item];
+};
+
+type OptionalPointType = MapAsOptional<PointType>;
+```
+
+## Partial keyword
+
+You can use this keyword to indicate that function uses a part of the existing type. Very usefull for typing update functions that do partial updates of and object
+
+```typescript
+type Animal = {
+  name: string;
+  legs: number;
+  sound: string;
+};
+
+function updateAnimal(item: Animal, prop: Partial<Animal>) {
+  return {
+    ...item,
+    prop,
+  };
+}
+
+const horse: Animal = {
+  name: "Horse",
+  legs: 4,
+  sound: "Yhiiia",
+};
+
+updateAnimal(horse, { sound: "Hjkihaah" });
+```
